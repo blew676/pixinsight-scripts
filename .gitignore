@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+# PixInsight signing keys: never in the repository
+*.xssk

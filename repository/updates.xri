@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xri version="1.0">
+   <description>
+      <p>Free PixInsight scripts by Blastrophoto. Sources and notes: https://github.com/blew676/pixinsight-scripts</p>
+   </description>
+   <platform os="all" arch="noarch" version="1.9.4:9.9.9">
+      <package fileName="ContinuumTools-1.0.0.zip" sha1="a7dae19a2a6191f0b99b7cf5706d81bccb772280" type="script" releaseDate="20261112">
+         <title>ContinuumTools 1.0.0</title>
+         <description>
+            <p>Under Script › ContinuumTools.</p>
+            <p>Narrowband Continuum Subtraction takes the continuum out of Hα, OIII or SII without leaving black star holes. Broadband Line Removal takes the emission-line light out of R, G and B, leaving dust, reflection nebulae and stars. Star Hole Repair fills the dark holes that over-subtracted stars left in an existing image.</p>
+            <p>Needs PixInsight 1.9.4 or later. StarXTerminator (RC Astro), when it is installed, makes the starless copies.</p>
+         </description>
+      </package>
+   </platform>
+   <platform os="all" arch="noarch" version="1.8.9:9.9.9">
+      <package fileName="SyntheticNBLuminance-1.5.zip" sha1="e7bb02811e655b88f964fa47a33989b6ada6b9d5" type="script" releaseDate="20261112">
+         <title>Synthetic NB Luminance 1.5</title>
+         <description>
+            <p>Under Script › Utilities.</p>
+            <p>Combines two or more registered narrowband masters into one luminance master, weighting each pixel by where each filter really has signal, so faint Hα is not diluted by empty OIII and faint OIII is not buried by bright Hα.</p>
+            <p>Run it on linear, registered, identically cropped masters.</p>
+         </description>
+      </package>
+   </platform>
+</xri>

@@ -1,0 +1,3 @@
+# Bytes stay as written: a signed script or index, and a zip's SHA-1 in updates.xri, must match
+# what is served exactly, so git never converts line endings here.
+* -text

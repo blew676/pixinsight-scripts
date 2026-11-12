@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixInsight scripts · Blastrophoto</title>
+<meta name="description" content="Free PixInsight scripts by Blastrophoto, installed and kept up to date by PixInsight itself.">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="https://blastrophoto.com/"><img src="logo.png" alt="Blastrophoto" width="233" height="40"></a>
+</header>
+<main>
+  <section class="intro">
+    <p class="eyebrow">PixInsight repository</p>
+    <h1>PixInsight scripts</h1>
+    <p class="lead">Free scripts for PixInsight, installed and kept up to date by PixInsight itself.</p>
+  </section>
+  <section>
+    <h2>Add the repository</h2>
+    <ol class="steps">
+      <li>In PixInsight, open <strong>Resources › Updates › Manage Repositories</strong>.</li>
+      <li>Press <strong>Add</strong>, enter this address and press <strong>OK</strong>:
+        <code class="url">https://pixinsight.blastrophoto.com/</code></li>
+      <li>Open <strong>Resources › Updates › Check for Updates</strong>, apply the updates and let
+        PixInsight restart. The scripts appear in the Script menu.</li>
+    </ol>
+    <p>From then on, <strong>Check for Updates</strong> brings each new version.</p>
+
+    <div class="note">
+      <p><strong>Not signed yet.</strong> The scripts are waiting for their PixInsight developer
+      signature. Until then PixInsight may warn that the repository is not signed when it checks
+      for updates: accept to go on. If a script then will not run, tick <strong>Allow execution
+      of unsigned scripts</strong> under <strong>Edit › Preferences › Security</strong>.</p>
+    </div>
+  </section>
+  <section>
+    <h2>The scripts</h2>
+    <article class="tool">
+      <h3>ContinuumTools <span class="ver">1.0.0</span></h3>
+      <p class="where">Script › ContinuumTools · released 2026-11-12</p>
+      <p>Narrowband Continuum Subtraction takes the continuum out of Hα, OIII or SII without leaving black star holes. Broadband Line Removal takes the emission-line light out of R, G and B, leaving dust, reflection nebulae and stars. Star Hole Repair fills the dark holes that over-subtracted stars left in an existing image.</p>
+      <p>Needs PixInsight 1.9.4 or later. StarXTerminator (RC Astro), when it is installed, makes the starless copies.</p>
+    </article>
+    <article class="tool">
+      <h3>Synthetic NB Luminance <span class="ver">1.5</span></h3>
+      <p class="where">Script › Utilities · released 2026-11-12</p>
+      <p>Combines two or more registered narrowband masters into one luminance master, weighting each pixel by where each filter really has signal, so faint Hα is not diluted by empty OIII and faint OIII is not buried by bright Hα.</p>
+      <p>Run it on linear, registered, identically cropped masters.</p>
+    </article>
+  </section>
+  <section class="small">
+    <p>The scripts make no network connections and start no other programs. Their sources, notes
+    and history are on <a href="https://github.com/blew676/pixinsight-scripts">GitHub</a>.</p>
+  </section>
+</main>
+<footer class="foot">
+  <a href="https://blastrophoto.com/">blastrophoto.com</a>
+</footer>
+</body>
+</html>
