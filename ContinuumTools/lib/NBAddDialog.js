@@ -68,6 +68,18 @@ var NBAddDialog = class extends Dialog
             "for OIII). 0 = the original PixelMath.</p>" );
          ui.auto = CT.ui.button( this, "Auto", function() { self.doAutoBlack( key ); },
             "<p>Set the black point to the level of the narrowband image's darkest areas.</p>" );
+         ui.lum = CT.ui.numeric( this, "Luminance:", lw, 0, 3, 2, this.p[key + "_lum"],
+            function( v ) { self.p[key + "_lum"] = v; self.schedulePreview(); },
+            "<p>Adds " + L.label + " to the image's <i>lightness</i> only, with the same soft addition, " +
+            "keeping hue and saturation. Brighter, crisper " + L.label + " structure without more " +
+            "color than the weights above give. 0 = off.</p>" );
+         ui.detail = CT.ui.numeric( this, "Detail:", lw, 0, 1, 2, this.p[key + "_detail"],
+            function( v ) { self.p[key + "_detail"] = v; self.schedulePreview(); },
+            "<p>Where " + L.label + " is strong, rebuilds the image's fine lightness structure (and its " +
+            "noise) from the cleaner " + L.label + " image, matched to the image's own local brightness. " +
+            "Only noise-sized differences are replaced, so stars and features " + L.label +
+            " does not have are left alone. 1 = full replacement where " + L.label + " is strong. " +
+            "Judge it in the 1:1 crop preview. 0 = off.</p>" );
          ui.reset = CT.ui.button( this, "Defaults", function() { self.resetLine( key ); },
             "<p>Restore this line's default weights, strength and black point.</p>" );
          let weightsRow = CT.ui.row( [ CT.ui.label( this, "Weights:", lw ), ui.r, ui.g, ui.b, "stretch", ui.reset ], 8 );
@@ -77,7 +89,7 @@ var NBAddDialog = class extends Dialog
          blackRow.add( ui.auto );
          ui.group = CT.ui.group( this, L.label, [
             CT.ui.labeledRow( this, "Image:", lw, ui.list ),
-            weightsRow, ui.strength, blackRow
+            weightsRow, ui.strength, blackRow, ui.lum, ui.detail
          ] );
          this.lineUI[key] = ui;
          groups.push( ui.group );
@@ -94,8 +106,12 @@ var NBAddDialog = class extends Dialog
          function( v ) { self.p.newImage = v; },
          "<p>On: the result opens as a new image. Off: the target itself is changed, like " +
          "PixelMath on $T (undoable). Either way an active mask on the target is honored.</p>" );
+      this.radiusControl = CT.ui.numeric( this, "Detail radius:", lw, 1, 12, 0, this.p.detailRadius,
+         function( v ) { self.p.detailRadius = Math.round( v ); self.schedulePreview(); },
+         "<p>Window radius (px) of the detail rebuild. Small (2-3) replaces only pixel-scale noise " +
+         "and fine texture; larger also takes over coarser structure from the narrowband image.</p>" );
       this.sharedGroup = CT.ui.group( this, "Blend", [
-         this.mControl,
+         this.mControl, this.radiusControl,
          CT.ui.row( [ CT.ui.label( this, "", lw ), this.newImageCheck, "stretch" ] )
       ] );
 
@@ -116,18 +132,24 @@ var NBAddDialog = class extends Dialog
       this.left.add( CT.ui.row( [ this.runButton, "stretch", this.closeButton ] ) );
 
       // --- preview ---------------------------------------------------------
+      this.cropMode = false;
       this.preview = new CT.PreviewControl( this );
       this.preview.message = "Press 'Update preview'";
+      this.preview.onImageClick = function( x, y ) { self.clickPreview( x, y ); };
       this.previewButton = CT.ui.button( this, "Update preview", function() { self.doPreview(); },
          "<p>Load the images and show the result; it then follows every control live.</p>" );
       this.originalCheck = CT.ui.check( this, "Show original", false,
          function( v ) { self.showOriginal = v; self.renderPreview(); },
          "<p>Toggle to compare with the RGB image alone.</p>" );
+      this.cropCheck = CT.ui.check( this, "1:1 crop", false,
+         function( v ) { self.setCropMode( v ); },
+         "<p>Show a full-resolution crop instead of the whole image, to judge Detail and noise. " +
+         "Click the preview to choose where (in either mode).</p>" );
       this.fitButton = CT.ui.button( this, "Fit", function() { self.preview.fit(); } );
       this.right = new VerticalSizer;
       this.right.spacing = 4;
       this.right.add( this.preview, 100 );
-      this.right.add( CT.ui.row( [ this.previewButton, this.originalCheck, this.fitButton, "stretch" ] ) );
+      this.right.add( CT.ui.row( [ this.previewButton, this.originalCheck, this.cropCheck, this.fitButton, "stretch" ] ) );
 
       this.sizer = new HorizontalSizer;
       this.sizer.margin = 8;
@@ -156,6 +178,8 @@ var NBAddDialog = class extends Dialog
    inputsChanged()
    {
       this.d = null;
+      this.cropMode = false;
+      this.cropCheck.checked = false;
       this.preview.clear( "Press 'Update preview'" );
       this.updateEnabled();
    }
@@ -168,7 +192,8 @@ var NBAddDialog = class extends Dialog
       {
          let has = CT.isView( v[L.key] );
          let ui = this.lineUI[L.key];
-         ui.r.enabled = ui.g.enabled = ui.b.enabled = ui.strength.enabled = ui.black.enabled = has;
+         ui.r.enabled = ui.g.enabled = ui.b.enabled = ui.strength.enabled = ui.black.enabled =
+            ui.lum.enabled = ui.detail.enabled = has;
          ui.auto.enabled = has && !this.busy;
          any = any || has;
       }
@@ -220,10 +245,11 @@ var NBAddDialog = class extends Dialog
    {
       let def = NBADD.defaults();
       let ui = this.lineUI[key];
-      for ( let s of [ "r", "g", "b", "strength", "black" ] )
+      for ( let s of NBADD.LINE_PARAMS )
          this.p[key + "_" + s] = def[key + "_" + s];
       ui.r.setValue( def[key + "_r"] ); ui.g.setValue( def[key + "_g"] ); ui.b.setValue( def[key + "_b"] );
       ui.strength.setValue( def[key + "_strength"] ); ui.black.setValue( def[key + "_black"] );
+      ui.lum.setValue( def[key + "_lum"] ); ui.detail.setValue( def[key + "_detail"] );
       this.schedulePreview();
    }
 
@@ -253,7 +279,9 @@ var NBAddDialog = class extends Dialog
          let d = self.ensureData();
          self.setBusy( true, "Preparing preview..." );
          NBADD.previewSetup( d, 1600, 1100 );
-         self.renderPreview();
+         self.cropMode = false;
+         self.cropCheck.checked = false;
+         self.renderPreview( true );
          self.status.text = d.looksLinear ?
             "The RGB image looks linear. This blend is meant for stretched images (shown here with an AutoSTF)." :
             "Preview ready. Every control updates it live; toggle 'Show original' to compare.";
@@ -269,19 +297,49 @@ var NBAddDialog = class extends Dialog
       }
    }
 
-   renderPreview()
+   renderPreview( refit )
    {
       if ( !this.d || !this.d.preview )
          return;
       try
       {
-         let bmp = NBADD.previewBitmap( this.d, this.p, this.showOriginal );
-         this.preview.setBitmap( bmp, this.d.preview.f, true );
+         let crop = this.cropMode && !!this.d.crop;
+         let bmp = NBADD.previewBitmap( this.d, this.p, this.showOriginal, crop );
+         this.preview.setBitmap( bmp, crop ? 1 : this.d.preview.f, !refit );
       }
       catch ( e )
       {
          CT.warn( "Preview failed: " + e );
       }
+   }
+
+   // Image coordinates of a preview click choose the crop centre.
+   clickPreview( x, y )
+   {
+      if ( !this.d || !this.d.preview || this.busy )
+         return;
+      if ( this.cropMode && this.d.crop )
+      {
+         x += this.d.crop.x0;
+         y += this.d.crop.y0;
+      }
+      NBADD.cropSetup( this.d, x, y, 900, 650 );
+      if ( !this.cropMode )
+      {
+         this.cropMode = true;
+         this.cropCheck.checked = true;
+      }
+      this.status.text = format( "1:1 crop at %d, %d. Click again to move it; untick '1:1 crop' for the whole image.",
+                                 Math.round( x ), Math.round( y ) );
+      this.renderPreview( true );
+   }
+
+   setCropMode( on )
+   {
+      this.cropMode = on;
+      if ( on && this.d && this.d.preview && !this.d.crop )
+         NBADD.cropSetup( this.d, this.d.W / 2, this.d.H / 2, 900, 650 );
+      this.renderPreview( true );
    }
 
    doRun()
@@ -302,9 +360,9 @@ var NBAddDialog = class extends Dialog
    cleanup()
    {
       this.timer.stop();
-      let s = { m: this.p.m, newImage: this.p.newImage };
+      let s = { m: this.p.m, newImage: this.p.newImage, detailRadius: this.p.detailRadius };
       for ( let L of NBADD.LINES )
-         for ( let k of [ "r", "g", "b", "strength", "black" ] )
+         for ( let k of NBADD.LINE_PARAMS )
             s[L.key + "_" + k] = this.p[L.key + "_" + k];
       CT.saveSettings( NBADD.TOOL, s );
       this.d = null;

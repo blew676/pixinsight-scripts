@@ -68,7 +68,8 @@ PACKAGES = [
             "light out of R, G and B, leaving dust, reflection nebulae and stars. Star Hole "
             "Repair fills the dark holes that over-subtracted stars left in an existing image. "
             "Add Narrowband to RGB blends stretched Hα, OIII and SII into a stretched RGB image "
-            "with a soft addition that never clips.",
+            "with a soft addition that never clips, and can add a line's brightness and its "
+            "cleaner fine detail to the lightness alone, without more colour.",
             "Needs PixInsight 1.9.4 or later. StarXTerminator (RC Astro), when it is installed, "
             "makes the starless copies.",
         ],

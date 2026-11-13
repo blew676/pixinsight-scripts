@@ -7,7 +7,7 @@ Four scripts for PixInsight 1.9.4+ (V8 engine):
 | **Narrowband Continuum Subtraction** | Removes the continuum (starlight, dust, reflection) from Hα / OIII / SII using a broadband image, without creating black star holes. |
 | **Broadband Line Removal** | Removes emission-line light (Hα + [NII], OIII, Hβ) from R / G / B, leaving only the continuum: dust, reflection nebulae, IFN, stars. |
 | **Star Hole Repair** | Finds and fills the dark holes that over-subtracted stars leave in existing continuum-subtracted images (like `NB_OLD`). |
-| **Add Narrowband to RGB** | Adds stretched, continuum-subtracted Hα / OIII / SII to a stretched RGB or LRGB image with a soft addition that never clips, with a live preview. |
+| **Add Narrowband to RGB** | Adds stretched, continuum-subtracted Hα / OIII / SII to a stretched RGB or LRGB image with a soft addition that never clips. Colour, brightness (lightness only) and clean fine detail can be added separately, with a live preview. |
 
 ## Install
 
@@ -116,6 +116,20 @@ What the tool adds on top of the PixelMath (defaults leave them neutral):
 - **Black point** per line. A narrowband image's background level gets added to the RGB background too, as a red (Hα) or teal (OIII) veil. The black point is subtracted first; **Auto** measures it from the image's darkest areas. A starless CS image whose dark areas are already clipped to 0 needs none (NB_ha measures 0).
 - **m** as a control: 0.999 is the original soft addition, 0.5 is a plain addition that clips.
 - All lines in one pass, as a new image or applied to the target (undoable). An active mask on the target is honoured either way, as PixelMath would.
+
+### Luminance and Detail: Hα brightness and clean structure without more red
+
+Often the Hα is far cleaner than the LRGB. Each line has two more controls that act on the image's **lightness only** (CIE L\*, through PixInsight's own conversion), so they don't change hue or saturation. Both default to 0. Per line they run after the colour addition: colour, then luminance, then detail.
+
+- **Luminance**: adds the line to the lightness with the same soft addition. Hα structure gets brighter and crisper without getting redder.
+  - Test (strong-Hα areas): brightness went from 0.213 to 0.317 and the red fraction stayed flat, 0.365 → 0.356. The colour weights alone give 0.457.
+- **Detail**: where the line is strong, rebuilds the image's fine lightness structure, and its noise, from the narrowband image.
+  - It uses a guided filter: in each window of **Detail radius** px it fits lightness ≈ a·NB + b. The result follows the narrowband's structure at the image's own local brightness and contrast.
+  - Only noise-sized differences are replaced: fully up to 2× the lightness noise, fading out by 4×. Stars (the narrowband is starless) and features the line doesn't have are left alone.
+  - It fades in between the 40th and 85th percentile of the line's brightness, so areas where the line is weak keep their own detail.
+  - Colour noise is not touched.
+  - Test: a synthetic noisy RGB built from NB_ha, with stars added. In strong-Hα areas, lightness noise fell from 0.0172 to 0.0030, 5.7 times less. Star peaks were unchanged (1.003 × truth) and the colour balance was unchanged.
+- **1:1 crop**: the downsampled whole-image preview can't show pixel-level noise. Tick **1:1 crop**, or just click the preview, to see a full-resolution crop around that point; click again to move it. Judge **Detail** there.
 
 ## Files
 

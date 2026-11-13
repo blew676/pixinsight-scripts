@@ -53,7 +53,7 @@ T.run( "nbadd", function()
    T.pixelMath( ref, "NBo3", [ 0.0, 1.0, 1.5 ], 0.999 );
    let d = NBADD.load( tgt, { ha: nbHa, o3: nbO3, s2: null } );
    let p = NBADD.defaults();
-   let out = NBADD.apply( d.target, d.lines, p );
+   let out = NBADD.apply( d.target, d.lines, p, NBADD.context( d, d.W, d.H, 1 ) );
    let mx1 = T.compare( "defaults vs PixelMath Ha+OIII", out, CT.getChannels( ref ) );
 
    // 2. another m and weights, H-alpha only
@@ -62,7 +62,7 @@ T.run( "nbadd", function()
    let p2 = NBADD.defaults();
    p2.m = 0.95; p2.ha_r = 0.7; p2.ha_g = 0.3; p2.ha_b = -0.2;
    let d2 = NBADD.load( tgt, { ha: nbHa, o3: null, s2: null } );
-   let mx2 = T.compare( "m=0.95, weights 0.7/0.3/-0.2 vs PixelMath", NBADD.apply( d2.target, d2.lines, p2 ), CT.getChannels( ref2 ) );
+   let mx2 = T.compare( "m=0.95, weights 0.7/0.3/-0.2 vs PixelMath", NBADD.apply( d2.target, d2.lines, p2, NBADD.context( d2, d2.W, d2.H, 1 ) ), CT.getChannels( ref2 ) );
 
    // 3. masks: in place (PixInsight applies the mask) and new image (applied by the engine)
    let mask = new Float32Array( W * H );
@@ -83,7 +83,7 @@ T.run( "nbadd", function()
 
    // 4. black point and strength move things the expected way
    let p5 = NBADD.defaults(); p5.ha_black = NBADD.autoBlack( d.lines[0].data, W, H );
-   let o5 = NBADD.apply( d.target, d.lines, p5 );
+   let o5 = NBADD.apply( d.target, d.lines, p5, NBADD.context( d, d.W, d.H, 1 ) );
    let mean = a => { let s = 0; for ( let i = 0; i < a.length; i += 7 ) s += a[i]; return s / Math.ceil( a.length / 7 ); };
    T.log( "auto black (NB_ha) " + p5.ha_black.toFixed( 4 ) + "; mean R: original " + mean( rgb[0] ).toFixed( 4 ) +
           ", defaults " + mean( out[0] ).toFixed( 4 ) + ", with black point " + mean( o5[0] ).toFixed( 4 ) );

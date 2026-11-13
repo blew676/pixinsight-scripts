@@ -17,7 +17,7 @@ scripts** under **Edit › Preferences › Security**.
 
 | Script | Menu | What it does |
 |---|---|---|
-| [ContinuumTools](ContinuumTools/README.md) | Script › ContinuumTools | Narrowband Continuum Subtraction, Broadband Line Removal, Star Hole Repair and Add Narrowband to RGB: continuum subtraction without black star holes, emission-line light taken out of R, G and B, holes in older results filled, and narrowband added to a stretched RGB image with a soft, non-clipping blend. PixInsight 1.9.4 or later. |
+| [ContinuumTools](ContinuumTools/README.md) | Script › ContinuumTools | Narrowband Continuum Subtraction, Broadband Line Removal, Star Hole Repair and Add Narrowband to RGB: continuum subtraction without black star holes, emission-line light taken out of R, G and B, holes in older results filled, and narrowband added to a stretched RGB image with a soft, non-clipping blend, its brightness and clean detail optionally on the lightness alone. PixInsight 1.9.4 or later. |
 | Synthetic NB Luminance | Script › Utilities | Combines two or more registered narrowband masters into one luminance master, weighting each pixel by where each filter really has signal. The method is in the script's opening comment. |
 
 ## What the scripts touch
