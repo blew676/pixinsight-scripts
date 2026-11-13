@@ -66,7 +66,9 @@ PACKAGES = [
             "Narrowband Continuum Subtraction takes the continuum out of Hα, OIII or SII "
             "without leaving black star holes. Broadband Line Removal takes the emission-line "
             "light out of R, G and B, leaving dust, reflection nebulae and stars. Star Hole "
-            "Repair fills the dark holes that over-subtracted stars left in an existing image.",
+            "Repair fills the dark holes that over-subtracted stars left in an existing image. "
+            "Add Narrowband to RGB blends stretched Hα, OIII and SII into a stretched RGB image "
+            "with a soft addition that never clips.",
             "Needs PixInsight 1.9.4 or later. StarXTerminator (RC Astro), when it is installed, "
             "makes the starless copies.",
         ],

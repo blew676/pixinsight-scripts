@@ -1,12 +1,13 @@
 # ContinuumTools for PixInsight
 
-Three scripts for PixInsight 1.9.4+ (V8 engine):
+Four scripts for PixInsight 1.9.4+ (V8 engine):
 
 | Script | What it does |
 |---|---|
 | **Narrowband Continuum Subtraction** | Removes the continuum (starlight, dust, reflection) from Hα / OIII / SII using a broadband image, without creating black star holes. |
 | **Broadband Line Removal** | Removes emission-line light (Hα + [NII], OIII, Hβ) from R / G / B, leaving only the continuum: dust, reflection nebulae, IFN, stars. |
 | **Star Hole Repair** | Finds and fills the dark holes that over-subtracted stars leave in existing continuum-subtracted images (like `NB_OLD`). |
+| **Add Narrowband to RGB** | Adds stretched, continuum-subtracted Hα / OIII / SII to a stretched RGB or LRGB image with a soft addition that never clips, with a live preview. |
 
 ## Install
 
@@ -83,17 +84,52 @@ Results on sh2-155 `NB_OLD`, with R as reference and Hα starless as guide:
 - The dark patch at the bottom edge is real structure, present in Hα and R too, so it is left alone.
 - Without a reference, detection uses shape only. It works, but misses more holes and is less selective.
 
+## 4. Add Narrowband to RGB
+
+Inputs: a **stretched** RGB or LRGB image and one or more **stretched** continuum-subtracted narrowband images (Hα, OIII, SII), all registered. You process the RGB and the narrowband separately, then add the narrowband when you like.
+
+Each line is added with this PixelMath, where W is the channel's weight:
+
+```
+$T * ~W + W * mtf(~m, (mtf(m, $T) + mtf(m, NB)))
+```
+
+The defaults reproduce the original recipes exactly. This was checked against PixelMath itself on the sh2-155 data: largest difference 6 × 10⁻⁸.
+
+| Line | R | G | B |
+|---|---|---|---|
+| Hα | 1.0 | 0.0 | 0.05 |
+| OIII | 0.0 | 1.0 | 1.5 |
+| SII (starting point) | 1.0 | 0.2 | 0.0 |
+
+All lines share m = 0.999. Lines are applied in the order Hα, OIII, SII, just like running the PixelMath instances one after another.
+
+**What the formula does.** `mtf(m, ·)` and `mtf(~m, ·)` are a transform and its inverse, so the images are added in the transformed space. With m near 1 that space is x/(1 − x), the "odds". Faint signal therefore adds almost linearly, but nothing can pass white: bright nebula and star cores roll off smoothly instead of clipping. The weights then decide how much of that sum goes into R, G and B:
+- 1 = all of it.
+- 0 = none.
+- Above 1 = more (the 1.5 in B is what makes OIII teal).
+- Below 0 = takes it away.
+
+What the tool adds on top of the PixelMath (defaults leave them neutral):
+- **Live preview** with every control, and **Show original** to compare.
+- **Strength** per line. It scales the narrowband inside the soft addition, so it changes how bright the line is without changing its colour. The R/G/B weights change both.
+- **Black point** per line. A narrowband image's background level gets added to the RGB background too, as a red (Hα) or teal (OIII) veil. The black point is subtracted first; **Auto** measures it from the image's darkest areas. A starless CS image whose dark areas are already clipped to 0 needs none (NB_ha measures 0).
+- **m** as a control: 0.999 is the original soft addition, 0.5 is a plain addition that clips.
+- All lines in one pass, as a new image or applied to the target (undoable). An active mask on the target is honoured either way, as PixelMath would.
+
 ## Files
 
 ```
 NarrowbandContinuumSubtraction.js   menu script (tool 1)
 BroadbandLineRemoval.js             menu script (tool 2)
 StarHoleRepair.js                   menu script (tool 3)
+AddNarrowbandToRGB.js               menu script (tool 4)
 lib/CTCore.js                       shared: statistics, star photometry, StarX wrapper, preview control, UI helpers
 lib/CTRepair.js                     hole detection and repair engine
 lib/NBCSEngine.js, NBCSDialog.js    tool 1
 lib/BBLREngine.js, BBLRDialog.js    tool 2
 lib/SHREngine.js,  SHRDialog.js     tool 3
+lib/NBAddEngine.js, NBAddDialog.js  tool 4
 tests/                              headless development tests (run_test.ps1 <test> <outdir>); they read the sh2-155 masters
 ```
 
